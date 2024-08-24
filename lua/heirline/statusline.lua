@@ -286,7 +286,7 @@ end
 
 ---@param component StatusLine
 local function register_update_autocmd(component)
-    local events, callback, pattern
+    local events, callback, pattern, per_window
     if type(component.update) == "string" then
         events = component.update
     else
@@ -296,12 +296,13 @@ local function register_update_autocmd(component)
         end
         callback = component.update.callback
         pattern = component.update.pattern
+        per_window = component.update.per_window
     end
 
     local id = vim.api.nvim_create_autocmd(events, {
         pattern = pattern,
         callback = function(args)
-            component:clean_win_cache(component.update.per_window and vim.api.nvim_get_current_win() or nil)
+            component:clean_win_cache(per_window and vim.api.nvim_get_current_win() or nil)
             if callback then
                 callback(component, args)
             end
