@@ -56,7 +56,7 @@ local default_restrict = {
 ---@class HeirlineOnClick
 ---@field callback string|HeirlineOnClickCallback
 ---@field name string|fun(self?: StatusLine):string
----@field update? boolean
+---@field update? boolean|integer
 ---@field minwid? number|fun(self: StatusLine):integer
 
 ---@class StatusLine
@@ -249,6 +249,17 @@ function StatusLine:get_win_attr(attr, default)
     return self[attr][winnr]
 end
 
+---@param winnr? integer if provided, this component's cache is cleared only for given window
+function StatusLine:clean_win_cache(winnr)
+    if self._win_cache then
+        if winnr then
+            self._win_cache[winnr] = nil
+        else
+            self._win_cache = nil
+        end
+    end
+end
+
 ---@param component StatusLine
 ---@return string
 local function register_global_function(component)
@@ -289,7 +300,7 @@ local function register_update_autocmd(component)
     local id = vim.api.nvim_create_autocmd(events, {
         pattern = pattern,
         callback = function(args)
-            component._win_cache = nil
+            component:clean_win_cache(component.update.per_window and vim.fn.winnr() or nil)
             if callback then
                 callback(component, args)
             end
@@ -321,8 +332,9 @@ function StatusLine:_eval()
     local update = self.update
     if update then
         if type(update) == "function" then
-            if update(self) then
-                self._win_cache = nil
+            local update_win = update(self)
+            if update_win then
+                self:clean_win_cache(type(update_win) == 'number' and update_win or nil)
             end
         else
             if not self._au_id then
