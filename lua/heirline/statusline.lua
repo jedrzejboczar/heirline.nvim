@@ -70,6 +70,7 @@ local default_restrict = {
 ---@field on_click? HeirlineOnClickCallback|HeirlineOnClick
 ---@field id integer[]
 ---@field winnr integer
+---@field winid integer
 ---@field fallthrough boolean
 ---@field flexible integer
 ---@field _win_cache? table
@@ -227,9 +228,9 @@ end
 ---@param default any
 function StatusLine:set_win_attr(attr, val, default)
     cleanup_win_attr(self[attr])
-    local winnr = self.winnr
+    local winid = self.winid
     self[attr] = self[attr] or {}
-    self[attr][winnr] = val or (self[attr][winnr] or default)
+    self[attr][winid] = val or (self[attr][winid] or default)
 end
 
 --- Get window-nr attribute
@@ -237,7 +238,7 @@ end
 ---@param default any
 ---@return any
 function StatusLine:get_win_attr(attr, default)
-    local winnr = self.winnr
+    local winid = self.winid
     if not self[attr] then
         if default then
             self[attr] = {}
@@ -245,15 +246,15 @@ function StatusLine:get_win_attr(attr, default)
             return
         end
     end
-    self[attr][winnr] = self[attr][winnr] or default
-    return self[attr][winnr]
+    self[attr][winid] = self[attr][winid] or default
+    return self[attr][winid]
 end
 
----@param winnr? integer if provided, this component's cache is cleared only for given window
-function StatusLine:clean_win_cache(winnr)
+---@param winid? integer if provided, this component's cache is cleared only for given window
+function StatusLine:clean_win_cache(winid)
     if self._win_cache then
-        if winnr then
-            self._win_cache[winnr] = nil
+        if winid then
+            self._win_cache[winid] = nil
         else
             self._win_cache = nil
         end
@@ -300,7 +301,7 @@ local function register_update_autocmd(component)
     local id = vim.api.nvim_create_autocmd(events, {
         pattern = pattern,
         callback = function(args)
-            component:clean_win_cache(component.update.per_window and vim.fn.winnr() or nil)
+            component:clean_win_cache(component.update.per_window and vim.api.nvim_get_current_win() or nil)
             if callback then
                 callback(component, args)
             end

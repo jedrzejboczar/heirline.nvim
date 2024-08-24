@@ -103,11 +103,12 @@ end
 
 ---comment
 ---@param statusline StatusLine
----@param winnr integer
+---@param winid integer
 ---@param full_width boolean
 ---@return string
-local function _eval(statusline, winnr, full_width)
-    statusline.winnr = winnr
+local function _eval(statusline, winid, full_width)
+    statusline.winid = winid
+    statusline.winnr = vim.api.nvim_win_get_number(winid)
     statusline._flexible_components = {}
     statusline._updatable_components = {}
     statusline._buflist = {}
@@ -135,20 +136,20 @@ end
 
 ---@return string
 function M.eval_statusline()
-    local winnr = vim.api.nvim_win_get_number(0)
-    return _eval(M.statusline, winnr, vim.o.laststatus == 3)
+    local winid = vim.api.nvim_get_current_win()
+    return _eval(M.statusline, winid, vim.o.laststatus == 3)
 end
 
 ---@return string
 function M.eval_winbar()
-    local winnr = vim.api.nvim_win_get_number(0)
-    return _eval(M.winbar, winnr, false)
+    local winid = vim.api.nvim_get_current_win()
+    return _eval(M.winbar, winid, false)
 end
 
 ---@return string
 function M.eval_tabline()
-    local winnr = 1
-    return _eval(M.tabline, winnr, true)
+    local winid = vim.fn.win_getid(1)
+    return _eval(M.tabline, winid, true)
 end
 
 --
