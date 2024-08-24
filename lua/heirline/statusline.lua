@@ -393,8 +393,10 @@ function StatusLine:_eval()
     local provider = self.provider
     if provider then
         local provider_str = type(provider) == "function" and (provider(self) or "") or (provider or "")
-        local hl_str_start, hl_str_end = eval_hl(self.merged_hl)
-        tbl_insert(tree, hl_str_start .. provider_str .. hl_str_end)
+        if provider_str ~= '' then -- do not add an empty highlight
+            local hl_str_start, hl_str_end = eval_hl(self.merged_hl)
+            tbl_insert(tree, hl_str_start .. provider_str .. hl_str_end)
+        end
     end
 
     local pick_child = self.pick_child
